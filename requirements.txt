@@ -1,0 +1,6 @@
+langchain==0.0.345
+openai==0.28.0
+fastapi
+pydantic
+qdrant_client
+tiktoken==0.7.0
