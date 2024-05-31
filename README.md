@@ -15,5 +15,7 @@ This project utilizes LangChain, Qdrant, and FastAPI to create a sophisticated c
 To get started, clone this repository to your local machine:
 
 ```bash
-git clone <repository-url>
+git clone <https://github.com/Samran-Elahi/bab_chat_bot>
 cd <repository-directory>
+
+
