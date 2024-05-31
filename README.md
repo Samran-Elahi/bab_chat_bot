@@ -18,4 +18,20 @@ To get started, clone this repository to your local machine:
 git clone <https://github.com/Samran-Elahi/bab_chat_bot>
 cd <repository-directory>
 
+pip install -r requirements.txt
+```
+Create an .env file at the root of your project directory. Populate it with necessary configurations such as API keys:
+
+```bash
+OPENAI_API_KEY='your_openai_api_key_here'
+```
+
+To start the application, use the following command:
+```bash
+uvicorn main:BaB_chatbot --host 0.0.0.0 --port 3000
+```
+
+
+
+
 
