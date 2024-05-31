@@ -4,7 +4,7 @@ This project utilizes LangChain, Qdrant, and FastAPI to create a sophisticated c
 
 ## Prerequisites
 
-- Python 3.8+
+- Python 3.10+
 - pip (Python package installer)
 - Virtual environment (recommended)
 
