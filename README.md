@@ -10,10 +10,10 @@ This project utilizes LangChain, Qdrant, and FastAPI to create a sophisticated c
 
 ## API End-Points
 
-POST /categories: Fetches category data from the external API.
-GET /search_category: Searches for categories by name.
-GET /all_category_names: Lists all category names from stored data.
-POST /send_chat: Handles chat queries and provides AI-generated responses.
+- POST /categories: Fetches category data from the external API.
+- GET /search_category: Searches for categories by name.
+- GET /all_category_names: Lists all category names from stored data.
+- POST /send_chat: Handles chat queries and provides AI-generated responses.
 
 ## Installation
 
