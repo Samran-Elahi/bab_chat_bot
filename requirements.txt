@@ -4,3 +4,5 @@ fastapi
 pydantic
 qdrant_client
 tiktoken==0.7.0
+celery
+redis
