@@ -35,11 +35,15 @@ Create an .env file at the root of your project directory. Populate it with nece
 ```bash
 OPENAI_API_KEY='your_openai_api_key_here'
 ```
+After running the BaB_chatbot file, you need to run the celery, for that you need to use 3 different terminal in which you have to run these:
 
-To start the application, use the following command:
 ```bash
-uvicorn main:BaB_chatbot --host 0.0.0.0 --port 3000
+redis-server
+celery -A celery_worker worker --loglevel=info
+celery -A celery_worker beat --loglevel=info
 ```
+
+
 
 
 
