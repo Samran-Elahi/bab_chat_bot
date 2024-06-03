@@ -1,0 +1,71 @@
+version: '3.9'
+
+services:
+  web:
+    build: .
+    command: uvicorn BaB_chatbot:app --host 0.0.0.0 --port 3000
+    ports:
+      - "3000:3000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+      - COLLECTION_NAME=${COLLECTION_NAME}
+      - DEVICE_ID=${DEVICE_ID}
+      - EMAIL=${EMAIL}
+      - PASSWORD=${PASSWORD}
+      - SECURITY_CODE=${SECURITY_CODE}
+      - CATEGORY_API=${CATEGORY_API}
+      - PRODUCT_API=${PRODUCT_API}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  celery:
+    build: .
+    command: celery -A celery_worker worker --loglevel=info
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+      - COLLECTION_NAME=${COLLECTION_NAME}
+      - DEVICE_ID=${DEVICE_ID}
+      - EMAIL=${EMAIL}
+      - PASSWORD=${PASSWORD}
+      - SECURITY_CODE=${SECURITY_CODE}
+      - CATEGORY_API=${CATEGORY_API}
+      - PRODUCT_API=${PRODUCT_API}
+
+  celery-beat:
+    build: .
+    command: celery -A celery_worker beat --loglevel=info
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+      - COLLECTION_NAME=${COLLECTION_NAME}
+      - DEVICE_ID=${DEVICE_ID}
+      - EMAIL=${EMAIL}
+      - PASSWORD=${PASSWORD}
+      - SECURITY_CODE=${SECURITY_CODE}
+      - CATEGORY_API=${CATEGORY_API}
+      - PRODUCT_API=${PRODUCT_API}
+
+  redis:
+    image: "redis:alpine"
+    command: redis-server --port 6379
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
