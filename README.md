@@ -43,6 +43,11 @@ celery -A celery_worker worker --loglevel=info
 celery -A celery_worker beat --loglevel=info
 ```
 
+```bash
+docker-compose up --build
+```
+
+
 
 
 
