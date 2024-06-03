@@ -10,11 +10,13 @@ This project utilizes LangChain, Qdrant, and FastAPI to create a sophisticated c
 
 ## API End-Points
 
-- POST /categories: Fetches category data from the external API.
+- POST /list-categories: Fetches category data from the external API.
 - GET /search_category: Searches for categories by name.
 - GET /all_category_names: Lists all category names from stored data.
 - POST /send_chat: Handles chat queries and provides AI-generated responses.
-
+- POST /save-all-products: Hit the products api for each categoryId.
+- POST list-mentioned-products: list your desired mentioned product by productId or catgeoryId
+  
 ## Installation
 
 ### Clone the Repository
@@ -35,13 +37,20 @@ Create an .env file at the root of your project directory. Populate it with nece
 ```bash
 OPENAI_API_KEY='your_openai_api_key_here'
 ```
+After running the BaB_chatbot file, you need to run the celery, for that you need to use 3 different terminal in which you have to run these:
 
-To start the application, use the following command:
 ```bash
-uvicorn main:BaB_chatbot --host 0.0.0.0 --port 3000
+redis-server --port 6380
 ```
+```bash
+celery -A celery_worker worker --loglevel=info
+```
+```bash
+celery -A celery_worker beat --loglevel=info
 
-
-
-
-
+```
+For making a docker image, run this command in your terminal:
+```bash
+docker-compose up --build
+```
+Note: In order to run all these files you must be residing in your current directory.
