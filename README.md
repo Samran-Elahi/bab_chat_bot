@@ -38,11 +38,16 @@ OPENAI_API_KEY='your_openai_api_key_here'
 After running the BaB_chatbot file, you need to run the celery, for that you need to use 3 different terminal in which you have to run these:
 
 ```bash
-redis-server --port 6380 
-celery -A celery_worker worker --loglevel=info
-celery -A celery_worker beat --loglevel=info
+redis-server --port 6380
 ```
+```bash
+celery -A celery_worker worker --loglevel=info
+```
+```bash
+celery -A celery_worker beat --loglevel=info
 
+```
+For making a docker image, run this command in your terminal:
 ```bash
 docker-compose up --build
 ```
