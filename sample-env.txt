@@ -1,0 +1,10 @@
+OPENAI_API_KEY=
+QDRANT_URL=
+QDRANT_API_KEY=
+COLLECTION_NAME=final_combine_category_and_products
+DEVICE_ID=
+EMAIL=
+PASSWORD=
+SECURITY_CODE=
+CATEGORY_API=https://proxy-main-xxxxxxx-ww.a.run.app/online/categories
+PRODUCT_API=https://proxy-main-xxxxxxx-ww.a.run.app/online/products/
