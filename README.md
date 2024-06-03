@@ -15,7 +15,7 @@ This project utilizes LangChain, Qdrant, and FastAPI to create a sophisticated c
 - GET /all_category_names: Lists all category names from stored data.
 - POST /send_chat: Handles chat queries and provides AI-generated responses.
 - POST /save-all-products: Hit the products api for each categoryId.
-- POST list-mentioned-products: list your desired mentioned product by productId or catgeoryId
+- POST /list-mentioned-products: list your desired mentioned product by productId or catgeoryId
   
 ## Installation
 
