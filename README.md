@@ -51,7 +51,7 @@ For making a docker image, run this command in your terminal:
 ```bash
 docker-compose up --build
 ```
-
+Note: In order to run all these files you must be residing in your current directory.
 
 
 
