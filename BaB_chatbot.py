@@ -71,9 +71,10 @@ async def chat_query(query: str):
     Returns:
         The response from the conversation chain.
     """
+    main_conversation = Utility.get_conversation_chain(Utility.get_vectorstore())
     result = main_conversation({"question": query})
     return result.get('answer')
 
 if __name__ == "__main__":
-    main_conversation = Utility.get_conversation_chain(Utility.get_vectorstore())
+    
     uvicorn.run(app, host="0.0.0.0", port=3000)
