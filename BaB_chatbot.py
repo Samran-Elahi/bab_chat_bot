@@ -78,8 +78,11 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
     """
     vectorstore = Utility.get_vectorstore(langId, new_vectorstore)
     main_conversation = Utility.get_conversation_chain(vectorstore)
-    prompt = f"""You are an Arabic chatbot which replies any query in Arabic Language. Here is the query which you need to answer based on the context you have, Query: {query}"""
-    result = main_conversation({"question": prompt})
+    if langId == '2':
+        prompt = f"""You are an Arabic chatbot which replies any query in Arabic Language. Here is the query which you need to answer based on the context you have, Query: {query}"""
+        result = main_conversation({"question": prompt})
+    else:
+        result = main_conversation({"question": query})
     return result.get('answer')
 
 if __name__ == "__main__":
