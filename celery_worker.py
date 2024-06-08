@@ -19,5 +19,6 @@ def call_periodic_task():
     print("execution started")
     category_response = requests.post("http://web:3000/list-categories")
     products_response = requests.post("http://web:3000/save-all-products")
-    update_vectorstore = Utility.get_vectorstore(True)
+    update_vectorstore = Utility.get_vectorstore('1', True)
+    update_vectorstore = Utility.get_vectorstore('2', True)
     print("Periodic task executed")
