@@ -19,7 +19,7 @@ This project utilizes LangChain, Qdrant, and FastAPI to create a sophisticated c
 
 ## Parameters 
 
-In order to get answer in Arabic you need to provide langId as '2', and if you are running celery_worker.py file with it, then use new_vectorstore paramater as 'False', because celery fil will update all the files, every hour including the vector store.  
+In order to get answer in Arabic you need to provide langId as '2', and if you are running celery_worker.py file with it, then use new_vectorstore paramater in /send-chat end-point as 'False', because celery file will update all the files every hour including the vector store.  
 
 ## Installation
 
