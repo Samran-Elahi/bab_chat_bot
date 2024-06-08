@@ -8,15 +8,16 @@ load_dotenv()
 app = FastAPI()
 
 @app.post("/save-all-products")
-async def save_all_products():
-    return Utility.hit_all_product_api()
+async def save_all_products(langId):
+    return Utility.hit_all_product_api(langId)
 
 @app.post("/list-mentioned-products")
-async def list_mentioned_products(id=None, category=None):
-    return Utility.hit_product_API(Const.DEVICE_ID, Const.EMAIL, Const.PASSWORD, Const.SECURITY_CODE, Const.LANG, Const.PRODUCT_API, id, category)
+async def list_mentioned_products(langId, id=None, category=None):
+    return Utility.hit_product_API(Const.DEVICE_ID, Const.EMAIL, Const.PASSWORD, Const.SECURITY_CODE, langId, Const.PRODUCT_API, id, category)
+    
 
 @app.post("/list-categories")
-async def call_external_api():
+async def call_external_api(langId):
     """Endpoint to call the external category API.
 
     Args:
@@ -26,9 +27,13 @@ async def call_external_api():
         The response from the category API.
     """
     result = Utility.hit_category_API(
-       Const.DEVICE_ID, Const.EMAIL, Const.PASSWORD, Const.SECURITY_CODE, Const.LANG, Const.CATEGORY_API
+       Const.DEVICE_ID, Const.EMAIL, Const.PASSWORD, Const.SECURITY_CODE, langId, Const.CATEGORY_API
     )
-    Utility.save_response_to_file(result, 'category_responses.json')
+
+    if langId == '2':
+        Utility.save_response_to_file(result, 'arabic_category_responses.json')
+    else:
+        Utility.save_response_to_file(result, 'english_category_responses.json')
     return result
 
 @app.get("/search_category")
@@ -62,7 +67,7 @@ async def get_all_category_names():
     return Utility.category_names
 
 @app.post("/send_chat")
-async def chat_query(query: str):
+async def chat_query(query: str, langId, new_vectorstore: bool=False):
     """Endpoint to process a chat query using the conversation chain.
 
     Args:
@@ -71,8 +76,10 @@ async def chat_query(query: str):
     Returns:
         The response from the conversation chain.
     """
-    main_conversation = Utility.get_conversation_chain(Utility.get_vectorstore())
-    result = main_conversation({"question": query})
+    vectorstore = Utility.get_vectorstore(langId, new_vectorstore)
+    main_conversation = Utility.get_conversation_chain(vectorstore)
+    prompt = f"""You are an Arabic chatbot which replies any query in Arabic Language. Here is the query which you need to answer based on the context you have, Query: {query}"""
+    result = main_conversation({"question": prompt})
     return result.get('answer')
 
 if __name__ == "__main__":

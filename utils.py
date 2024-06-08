@@ -17,9 +17,8 @@ class Utility:
         Returns:
             None
         """
-        with open(filename, 'w') as f:
-            
-            json.dump(data, f, indent=4)
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
         print(f"Response saved to {filename}")
         
     @staticmethod
@@ -40,19 +39,23 @@ class Utility:
         return chunks
     
     @staticmethod
-    def combine_chunk():
+    def combine_chunk(langId):
         """Combines chunks from product and category JSON files.
 
         Returns:
             A list combining chunks from both product and category JSON files.
         """
-        chunks_products = Utility.chunk_json('product_responses.json', 2000, 300)
-        chunks_categories = Utility.chunk_json('category_responses.json', 6000, 500)
+        if langId == '2':
+            chunks_products = Utility.chunk_json('arabic_category_responses.json', 2000, 300)
+            chunks_categories = Utility.chunk_json('arabic_product_responses.json', 6000, 500)
+        else:
+            chunks_products = Utility.chunk_json('english_category_responses.json', 2000, 300)
+            chunks_categories = Utility.chunk_json('english_product_responses.json', 6000, 500)
         return chunks_categories + chunks_products
 
     @staticmethod
-    def get_vectorstore(new_vectorstore=False):
-        """Initializes and returns a Qdrant vector store.
+    def get_vectorstore(langId, new_vectorstore=False):
+        """Initializes and returns a Qdrant vector store based on language id.
 
         Args:
             new_vectorstore: A boolean flag to indicate whether a new vector store should be created.
@@ -62,9 +65,25 @@ class Utility:
         """
         embeddings = OpenAIEmbeddings(api_key=Const.OPENAI_API_KEY)
         client = QdrantClient(url=Const.QDRANT_URL, headers={"Authorization": f"Bearer {Const.QDRANT_API_KEY}"})
-        qdrant = Qdrant(client, Const.COLLECTION_NAME, embeddings)
-        if new_vectorstore == True:
-            qdrant = qdrant.from_texts(Utility.combine_chunk(), embeddings, url=Const.QDRANT_URL, prefer_grpc=True, api_key=Const.QDRANT_API_KEY, collection_name=Const.COLLECTION_NAME)
+       
+        if langId == '2':
+            collection_name = Const.ARABIC_COLLECTION_NAME
+        else:
+            collection_name = Const.ENGLISH_COLLECTION_NAME
+        
+        if new_vectorstore:
+            chunks = Utility.combine_chunk(langId)
+            qdrant = Qdrant(client, collection_name, embeddings).from_texts(
+            chunks,
+            embeddings,
+            url=Const.QDRANT_URL,
+            prefer_grpc=True,
+            api_key=Const.QDRANT_API_KEY,
+            collection_name=collection_name
+        )
+        else:
+            qdrant = Qdrant(client, collection_name, embeddings)
+
         return qdrant
 
     @staticmethod
@@ -83,7 +102,7 @@ class Utility:
             llm=llm,
             retriever=vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 5}),
             memory=memory,
-            response_if_no_docs_found="I don't have this information",
+            response_if_no_docs_found="I don't have this information rightnow. Please provide more context to answer your query.",
             rephrase_question=False,
             return_source_documents=True,
         )
@@ -221,16 +240,19 @@ class Utility:
         return ids
 
     @staticmethod
-    def hit_all_product_api():
+    def hit_all_product_api(langId):
         """Hits the product API for all category IDs and saves the responses to a file.
 
         Returns:
             None
         """
         results = []
-        category_result = Utility.hit_category_API(Const.DEVICE_ID, Const.EMAIL, Const.PASSWORD, Const.SECURITY_CODE, Const.LANG, Const.CATEGORY_API)
+        category_result = Utility.hit_category_API(Const.DEVICE_ID, Const.EMAIL, Const.PASSWORD, Const.SECURITY_CODE, langId, Const.CATEGORY_API)
         ids = Utility.process_ids(category_result)
         for id in ids:
-            result = Utility.hit_product_API(Const.DEVICE_ID, Const.EMAIL, Const.PASSWORD, Const.SECURITY_CODE, Const.LANG, Const.PRODUCT_API, id, None)
+            result = Utility.hit_product_API(Const.DEVICE_ID, Const.EMAIL, Const.PASSWORD, Const.SECURITY_CODE, langId, Const.PRODUCT_API, id, None)
             results.append(result)
-        Utility.save_response_to_file(results, 'product_responses.json')
+        if langId == '2':
+            Utility.save_response_to_file(results, 'arabic_product_responses.json')
+        else:
+            Utility.save_response_to_file(results, 'english_product_responses.json')

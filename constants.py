@@ -6,7 +6,8 @@ class Const:
     OPENAI_API_KEY: str = os.getenv('OPENAI_API_KEY')
     QDRANT_URL: str = os.getenv('QDRANT_URL')
     QDRANT_API_KEY: str = os.getenv('QDRANT_API_KEY')
-    COLLECTION_NAME: str = os.getenv('COLLECTION_NAME')
+    ENGLISH_COLLECTION_NAME: str = 'english_final_combine_category_and_products'
+    ARABIC_COLLECTION_NAME: str = 'arabic_final_combine_category_and_products'
     DEVICE_ID: str = os.getenv('DEVICE_ID')
     EMAIL: str = os.getenv('EMAIL')
     PASSWORD: str = os.getenv('PASSWORD')
