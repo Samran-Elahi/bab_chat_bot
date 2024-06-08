@@ -17,6 +17,10 @@ This project utilizes LangChain, Qdrant, and FastAPI to create a sophisticated c
 - POST /save-all-products: Hit the products api for each categoryId.
 - POST /list-mentioned-products: list your desired mentioned product by productId or catgeoryId
 
+## Parameters 
+
+In order to get answer in Arabic you need to provide langId as '2', and if you are running celery_worker.py file with it, then use new_vectorstore paramater as 'False', because celery fil will update all the files, every hour including the vector store.  
+
 ## Installation
 
 ### Clone the Repository
