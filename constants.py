@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 @dataclass(frozen=True)
 class Const:
     OPENAI_API_KEY: str = os.getenv('OPENAI_API_KEY')
@@ -14,6 +16,7 @@ class Const:
     SECURITY_CODE: str = os.getenv('SECURITY_CODE')
     CATEGORY_API: str = os.getenv('CATEGORY_API')
     PRODUCT_API: str = os.getenv('PRODUCT_API')
-    LANG: int = 1
+    ENGLISH_PRODUCTNAME_COLLECTION_NAME: str = 'english_product_names'
+    ARABIC_PRODUCTNAME_COLLECTION_NAME: str = 'arabic_product_names'
 
 

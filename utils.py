@@ -68,10 +68,15 @@ class Utility:
        
         if langId == '2':
             collection_name = Const.ARABIC_COLLECTION_NAME
+            productName_collection_name = Const.ARABIC_PRODUCTNAME_COLLECTION_NAME
+            chunk_productName = Utility.extract_product_names('arabic_product_responses.json')
         else:
             collection_name = Const.ENGLISH_COLLECTION_NAME
+            productName_collection_name = Const.ENGLISH_PRODUCTNAME_COLLECTION_NAME
+            chunk_productName = Utility.extract_product_names('english_product_responses.json')
         
         if new_vectorstore:
+        
             chunks = Utility.combine_chunk(langId)
             qdrant = Qdrant(client, collection_name, embeddings).from_texts(
             chunks,
@@ -81,10 +86,20 @@ class Utility:
             api_key=Const.QDRANT_API_KEY,
             collection_name=collection_name
         )
+            product_qdrant = Qdrant(client, productName_collection_name, embeddings).from_texts(
+            chunk_productName,
+            embeddings,
+            url=Const.QDRANT_URL,
+            prefer_grpc=True,
+            api_key=Const.QDRANT_API_KEY,
+            collection_name=productName_collection_name
+        )
+        
         else:
             qdrant = Qdrant(client, collection_name, embeddings)
+            product_qdrant = Qdrant(client, productName_collection_name, embeddings)
 
-        return qdrant
+        return qdrant, product_qdrant
 
     @staticmethod
     def get_conversation_chain(vectorstore):
@@ -256,3 +271,37 @@ class Utility:
             Utility.save_response_to_file(results, 'arabic_product_responses.json')
         else:
             Utility.save_response_to_file(results, 'english_product_responses.json')
+    
+    @staticmethod
+    def extract_product_names(file_path):
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="File not found")
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Invalid JSON format")
+
+        product_names = []
+        for item in data:
+            if item.get("response") == 1 and "data" in item:
+                for product in item["data"]:
+                    product_names.append(product["productName"])
+        return product_names
+
+    @staticmethod
+    def get_product_id_by_name(file_path, product_name):
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="File not found")
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Invalid JSON format")
+
+        for item in data:
+            if item.get("response") == 1 and "data" in item:
+                for product in item["data"]:
+                    if product["productName"] == product_name:
+                        return product["productId"]
+        return None
