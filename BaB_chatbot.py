@@ -106,17 +106,17 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
         result = main_conversation({"question": query})
         
         product_prompt = f"""
-    Response: {result.get('answer')}
-    
-    Return all the product names that have been identified from the above response and matched the list of product names semantically.
-    Format your response with 'START_PRODUCT_NAMES' before listing the product names and 'END_PRODUCT_NAMES' after the list.
-    Example response format:
-    START_PRODUCT_NAMES
-    Product Name 1, Product Name 2, Product Name 3
-    END_PRODUCT_NAMES
+        Response: {result.get('answer')}
+        
+        Return all the product names that have been identified from the above response and matched the list of product names semantically.
+        Format your response with 'START_PRODUCT_NAMES' before listing the product names and 'END_PRODUCT_NAMES' after the list.
+        Example response format:
+        START_PRODUCT_NAMES
+        Product Name 1, Product Name 2, Product Name 3
+        END_PRODUCT_NAMES
 
-    The structured format will assist in the direct mapping and extraction of Product Names for subsequent processing steps.
-"""
+        The structured format will assist in the direct mapping and extraction of Product Names for subsequent processing steps.
+    """
 
         product_result = product_conversation({"question": product_prompt})
         productNames = Utility.get_product_name(product_result.get('answer'))
@@ -135,6 +135,12 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
         """
 
     answer = llm.invoke(classification_prompt)
+    
+    classification_tokens = Utility.get_tokens(answer.content+classification_prompt)
+    response_tokens = Utility.get_tokens(result.get('answer')+query)
+    product_tokens = Utility.get_tokens(product_result.get('answer')+product_prompt)
+    total_tokens = classification_tokens + response_tokens + product_tokens
+    
     product_id = []
 
     for product_name in productNames:
@@ -142,20 +148,19 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
         product_id.append(id_by_productName)
     print(productNames)
     
-    if answer.content == 'single product':
-        return Utility.create_json_structure(answer.content, body_text=result.get('answer'), text=None, product_ids=product_id[0])
+    if 'single product' in answer.content:
+        return {'WhatsApp Structure': Utility.create_json_structure(answer.content, body_text=result.get('answer'), text=None, product_ids=product_id[0]), 'tokens':total_tokens}
     
-    elif answer.content == 'catalogue':
-        return Utility.create_json_structure(answer.content, body_text=result.get('answer'), text=None, product_ids=product_id)
+    elif 'catalogue' in answer.content :
+        return  {'WhatsApp Structure': Utility.create_json_structure(answer.content, body_text=result.get('answer'), text=None, product_ids=product_id), 'tokens':total_tokens}
     
-    elif answer.content == 'media':
+    elif 'media' in answer.content:
         image_urls = Utility.extract_urls(result.get('answer'))
         mime_type = Utility.check_image_urls(image_urls)
-        # print(result.get('answer'))
-        return Utility.create_json_structure(answer.content, body_text=None, text=None, product_ids=None, mediaType='Images', mimeType=mime_type, url=image_urls)
+        return {'WhatsApp Structure': Utility.create_json_structure(answer.content, body_text=None, text=None, product_ids=None, mediaType='Images', mimeType=mime_type, url=image_urls), 'tokens':total_tokens}
     
     else:
-        return Utility.create_json_structure(answer.content, body_text=None, text=result.get('answer'), product_ids=None)
+        return {'WhatsApp Structure': Utility.create_json_structure(answer.content, body_text=None, text=result.get('answer'), product_ids=None), 'tokens':total_tokens}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=3000)

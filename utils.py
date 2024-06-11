@@ -383,3 +383,17 @@ class Utility:
             non_png_mime_types.add(mime_type)
         
         return non_png_mime_types
+
+    @staticmethod
+    def get_tokens(text):
+
+        # Initialize the tokenizer for the specific model
+        encoding = tiktoken.get_encoding("cl100k_base")
+
+        # Encode the text to get the list of tokens
+        tokens = encoding.encode(text)
+
+        # Count the number of tokens
+        num_tokens = len(tokens)
+
+        return num_tokens
