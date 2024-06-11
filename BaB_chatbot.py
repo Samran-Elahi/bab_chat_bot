@@ -143,7 +143,7 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
     print(productNames)
     
     if answer.content == 'single product':
-        return Utility.create_json_structure(answer.content, body_text=result.get('answer'), text=None, product_ids=product_id[0])
+        return Utility.create_json_structure('product', body_text=result.get('answer'), text=None, product_ids=product_id[0])
     
     elif answer.content == 'catalogue':
         return Utility.create_json_structure(answer.content, body_text=result.get('answer'), text=None, product_ids=product_id)
