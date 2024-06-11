@@ -12,10 +12,10 @@ RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy and set environment variables
-COPY .env /app/.env
+# COPY .env /app/.env
 
 # Make port 3000 available to the world outside this container
-EXPOSE 3000
+EXPOSE 8080
 
 # Start the FastAPI application
-CMD ["uvicorn", "BaB_chatbot:app", "--host", "0.0.0.0", "--port", "3000"]
+CMD ["uvicorn", "BaB_chatbot:app", "--host", "0.0.0.0", "--port", "8080"]
