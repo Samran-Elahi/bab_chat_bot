@@ -91,40 +91,71 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
     Returns:
         The response from the conversation chain.
     """
-    if langId == '1':
-        productName = Utility.extract_product_names('english_product_responses.json')
-    else:
-        productName = Utility.extract_product_names('arabic_product_responses.json')
-
-    llm = ChatOpenAI(model_name="gpt-4-turbo")
+    llm = ChatOpenAI(model_name="gpt-4")
+    
     combine_vectorstore = Utility.get_vectorstore(langId, new_vectorstore)[0]
     productName_vectorstore = Utility.get_vectorstore(langId, new_vectorstore)[1]
-    main_conversation = Utility.get_conversation_chain(combine_vectorstore)
-    product_conversation = Utility.get_conversation_chain(productName_vectorstore)
+    
+    main_conversation = Utility.get_conversation_chain(combine_vectorstore, llm = ChatOpenAI(max_tokens=500))
+    product_conversation = Utility.get_conversation_chain(productName_vectorstore, llm = ChatOpenAI(model_name="gpt-4" , max_tokens=500))
+    
     if langId == '2':
         prompt = f"""You are an Arabic chatbot which replies any query in Arabic Language. Here is the query which you need to answer based on the context you have, Query: {query}"""
         result = main_conversation({"question": prompt})
     else:
         result = main_conversation({"question": query})
+        
+        product_prompt = f"""
+    Response: {result.get('answer')}
     
+    Return all the product names that have been identified from the above response and matched the list of product names semantically.
+    Format your response with 'START_PRODUCT_NAMES' before listing the product names and 'END_PRODUCT_NAMES' after the list.
+    Example response format:
+    START_PRODUCT_NAMES
+    Product Name 1, Product Name 2, Product Name 3
+    END_PRODUCT_NAMES
+
+    The structured format will assist in the direct mapping and extraction of Product Names for subsequent processing steps.
+"""
+
+        product_result = product_conversation({"question": product_prompt})
+        productNames = Utility.get_product_name(product_result.get('answer'))
+        
     classification_prompt = f"""
-        You need to classify the following response into one of the four categories:
-        - "catalogue" if the response contains a list of product names or their IDs,
-        - "single product" if it contains details of a single product name or ID,
-        - "simple text" if no product name from the provided list is involved in the query,
+        Classify the response into one of the following categories using a single designated word:
 
-        Here is the list of product names to consider: {productName}
+        - "media" if the response contains any type of image URL.
+        - "catalogue" if the response lists multiple product names.
+        - "single product" if it contains details of a single product name.
+        - "simple text" if it does not involve any product name from the provided list.
 
-        Additionally, return all the product names that have been identified from the following user query response and matched the list of product names semantically.
+        Product names to consider: {productNames}
 
-        Response: {result}
+        Response: {result.get('answer')}
         """
-    answer = llm.invoke(classification_prompt)
 
-    return {
-        "response": result.get('answer'),
-        "classification": answer
-    }
+    answer = llm.invoke(classification_prompt)
+    product_id = []
+
+    for product_name in productNames:
+        id_by_productName = Utility.get_product_id_by_name('english_product_responses.json', product_name)
+        product_id.append(id_by_productName)
+    print(productNames)
+    
+    if answer.content == 'single product':
+        return Utility.create_json_structure(answer.content, body_text=result.get('answer'), text=None, product_ids=product_id[0])
+    
+    elif answer.content == 'catalogue':
+        return Utility.create_json_structure(answer.content, body_text=result.get('answer'), text=None, product_ids=product_id)
+    
+    elif answer.content == 'media':
+        image_urls = Utility.extract_urls(result.get('answer'))
+        mime_type = Utility.check_image_urls(image_urls)
+        # print(result.get('answer'))
+        return Utility.create_json_structure(answer.content, body_text=None, text=None, product_ids=None, mediaType='Images', mimeType=mime_type, url=image_urls)
+    
+    else:
+        return Utility.create_json_structure(answer.content, body_text=None, text=result.get('answer'), product_ids=None)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=3000)

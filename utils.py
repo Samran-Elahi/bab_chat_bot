@@ -102,7 +102,7 @@ class Utility:
         return qdrant, product_qdrant
 
     @staticmethod
-    def get_conversation_chain(vectorstore):
+    def get_conversation_chain(vectorstore, llm):
         """Creates and returns a conversational retrieval chain.
 
         Args:
@@ -111,15 +111,15 @@ class Utility:
         Returns:
             An instance of ConversationalRetrievalChain.
         """
-        llm = ChatOpenAI(max_tokens=500)
         memory = ConversationBufferMemory(memory_key="chat_history", output_key="answer", return_messages=True)
         conversation_chain = ConversationalRetrievalChain.from_llm(
             llm=llm,
-            retriever=vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 5}),
+            retriever=vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 3}),
             memory=memory,
             response_if_no_docs_found="I don't have this information rightnow. Please provide more context to answer your query.",
             rephrase_question=False,
             return_source_documents=True,
+            
         )
         return conversation_chain
 
@@ -302,6 +302,84 @@ class Utility:
         for item in data:
             if item.get("response") == 1 and "data" in item:
                 for product in item["data"]:
-                    if product["productName"] == product_name:
+                    if product_name.lower() in (product["productName"]).lower():
                         return product["productId"]
         return None
+
+    @staticmethod
+    def get_product_name(data):
+        """
+        Extracts product names from the response string where each product is listed on a new line
+        starting with a dash and space ('- ').
+        
+        Args:
+        response (str): The response string containing the product names.
+        
+        Returns:
+        list: A list of product names.
+        """
+            # Define markers for start and end of product names
+        start_marker = "START_PRODUCT_NAMES"
+        end_marker = "END_PRODUCT_NAMES"
+        
+        # Find indices for start and end markers
+        start_index = data.find(start_marker) + len(start_marker)
+        end_index = data.find(end_marker)
+        
+        # Check if both markers are found
+        if start_index - len(start_marker) == -1 or end_index == -1:
+            return []  # Return an empty list if any marker is not found
+
+        # Extract the product names segment and strip any leading/trailing whitespace
+        product_names_segment = data[start_index:end_index].strip()
+        
+        # Split the product names by comma and strip whitespace from each product name
+        product_names = [name.strip() for name in product_names_segment.split(',')]
+        
+        return product_names
+    
+    @staticmethod
+    def create_json_structure(type_value, body_text=None, text=None, product_ids=None,  mediaType=None, mimeType=None, url=None):
+        data = {}
+        
+        if body_text is not None:
+            data['body'] = body_text
+        if text is not None:
+            data['text'] = text
+        if product_ids is not None:
+            if isinstance(product_ids, list):
+                data['productIds'] = product_ids
+            else:
+                data['productId'] = product_ids
+        
+        if mediaType is not None or mimeType is not None or url is not None:
+            data['mediaType'] = mediaType
+            data['mimeType'] = mimeType
+            if isinstance(url, list):
+                data['urls'] = url
+            else:
+                data['url'] = url
+            
+        json_structure = {
+            "type": type_value,
+            "data": data
+        }
+        
+        return json_structure
+    
+    @staticmethod
+    def extract_urls(text):
+        # Regular expression pattern to find URLs starting with http and ending with typical URL endings
+        url_pattern = r'https?://[^\s\)]+(?:\.png|\.jpg|\.jpeg|\.gif|\.bmp|\.webp|\.svg|\.pdf|\.html|\.htm|\.php|\.asp|\.aspx|\.js|\.css|\.json|\.xml|/)?'
+        urls = re.findall(url_pattern, text)
+        return urls
+
+    @staticmethod
+    def check_image_urls(image_urls):
+        non_png_mime_types = set()
+        
+        for url in image_urls:
+            mime_type,_ = mimetypes.guess_type(url)
+            non_png_mime_types.add(mime_type)
+        
+        return non_png_mime_types
