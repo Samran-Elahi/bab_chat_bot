@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy and set environment variables
-COPY .env /app/.env
+# COPY .env /app/.env
 
 # Make port 3000 available to the world outside this container
 EXPOSE 3000
