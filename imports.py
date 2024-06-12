@@ -1,7 +1,11 @@
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.chains import ConversationalRetrievalChain
+from langchain.chains import (ConversationalRetrievalChain, LLMChain, StuffDocumentsChain)
 from langchain.chains import ChatVectorDBChain
 from langchain.memory import ConversationBufferMemory
+from langchain_core.prompts import BasePromptTemplate
+from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import (SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate)
+
 from langchain.vectorstores import Qdrant
 from langchain.chat_models import ChatOpenAI
 from qdrant_client import QdrantClient

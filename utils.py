@@ -102,7 +102,7 @@ class Utility:
         return qdrant, product_qdrant
 
     @staticmethod
-    def get_conversation_chain(vectorstore, llm):
+    def get_conversation_chain(vectorstore, langId, llm):
         """Creates and returns a conversational retrieval chain.
 
         Args:
@@ -110,20 +110,113 @@ class Utility:
 
         Returns:
             An instance of ConversationalRetrievalChain.
-        """
+        """ 
+        if langId == '2':
+            general_system_template = Utility.template_prompts()['arabic_general_system_template']
+        else:
+            general_system_template = Utility.template_prompts()['english_general_system_template']
+            
+        general_user_template = "Question:```{question}```"
+
+        messages = [
+                    SystemMessagePromptTemplate.from_template(general_system_template),
+                    HumanMessagePromptTemplate.from_template(general_user_template)
+        ]
+        
+        qa_prompt = ChatPromptTemplate.from_messages( messages )
         memory = ConversationBufferMemory(memory_key="chat_history", output_key="answer", return_messages=True)
         conversation_chain = ConversationalRetrievalChain.from_llm(
             llm=llm,
             retriever=vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 3}),
             memory=memory,
-            # condense_question_prompt: BasePromptTemplate = "",
+            chain_type="stuff",
+            combine_docs_chain_kwargs={'prompt': qa_prompt},
             response_if_no_docs_found="I don't have this information rightnow. Please provide more context to answer your query.",
             rephrase_question=False,
             return_source_documents=True,
             
         )
         return conversation_chain
+    
+    @staticmethod
+    def get_productNames_conversation_chain(vectorstore, general_system_template, general_user_template, llm):
+        messages = [
+                    SystemMessagePromptTemplate.from_template(general_system_template),
+                    HumanMessagePromptTemplate.from_template(general_user_template)
+        ]
+        
+        qa_prompt = ChatPromptTemplate.from_messages( messages )
+        memory = ConversationBufferMemory(memory_key="chat_history", output_key="answer", return_messages=True)
+        conversation_chain = ConversationalRetrievalChain.from_llm(
+            llm=llm,
+            retriever=vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 3}),
+            memory=memory,
+            chain_type="stuff",
+            combine_docs_chain_kwargs={'prompt': qa_prompt},
+            response_if_no_docs_found="I don't have this information rightnow. Please provide more context to answer your query.",
+            rephrase_question=False,
+            return_source_documents=True,
+            
+        )
+        return conversation_chain
+        
+    @staticmethod
+    def template_prompts():
+        return{
+            'arabic_general_system_template' : r""" 
+            Given a specific context, please give a short answer to the question, provide the names all of relevant(even if it relates a bit) products, and answer the query accordingly. 
+            Note: Answer all queries in Arabic language.
+            ----
+            {context}
+            ----
+            """, 
+            'english_general_system_template' : r""" 
+            Given a specific context, please give a short answer to the question, covering the required advices in general and then provide the names all of relevant(even if it relates a bit) products. 
+            Note: Answer all queries in English language.
+            ----
+            {context}
+            ----
+            """,
+            'product_system_message': r"""
+            Given the context provided, identify and extract all product names that match even slightly with the user's query semantically from the list of product names in your context vector database.
+            Format your response as follows:
+            - Begin with 'START_PRODUCT_NAMES'
+            - List the product names separated by commas like Product Name 1, Product Name 2, Product Name 3, ..., Product Name 'n' 
+            - End with 'END_PRODUCT_NAMES'
 
+            Example response:
+            START_PRODUCT_NAMES
+            Product Name 1, Product Name 2, Product Name 3, ..., Product Name 'n' 
+            END_PRODUCT_NAMES
+
+            ----
+            {context}
+            ----
+            """,
+            'arabic_product_system_message': r"""
+            Given the context provided in arabic product Names and categories, identify and extract all product names written in arabic language that match even slightly with the user's query semantically from the list of product names in arabic language in your context vector database.
+            Format your response as follows:
+            - Begin with 'START_PRODUCT_NAMES'
+            - List the product names separated by commas like Product Name 1, Product Name 2, Product Name 3, ..., Product Name 'n' 
+            - End with 'END_PRODUCT_NAMES'
+
+            Example response:
+            START_PRODUCT_NAMES
+            Product Name 1, Product Name 2, Product Name 3, ..., Product Name 'n' 
+            END_PRODUCT_NAMES
+
+            ----
+            {context}
+            ----
+            """
+
+
+            
+            
+            
+        }
+        
+    
     @staticmethod
     def hit_category_API(deviceId, email, password, securityCode, langId, url):
         """Sends a POST request to the category API and returns the response.
