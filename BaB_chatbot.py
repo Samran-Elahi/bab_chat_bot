@@ -99,6 +99,8 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
     main_conversation = Utility.get_conversation_chain(combine_vectorstore, llm = ChatOpenAI(max_tokens=500))
     product_conversation = Utility.get_conversation_chain(productName_vectorstore, llm = ChatOpenAI(model_name="gpt-4" , max_tokens=500))
     
+    # query = '"Yango Play" هو تطبيق ترفيهي تابع لشركة "Yango"، وهي جزء من مجموعة "Yandex". يوفر التطبيق محتوى ترفيهي متنوع يشمل الأفلام، البرامج التلفزيونية، والموسيقى. يهدف "Yango Play" إلى توفير تجربة ترفيهية شاملة للمستخدمين من خلال مكتبة محتوى واسعة يمكن الوصول إليها عبر الإنترنت.'
+    
     if langId == '2':
         prompt = f"""You are an Arabic chatbot which replies any query in Arabic Language. Here is the query which you need to answer based on the context you have, Query: {query}"""
         result = main_conversation({"question": prompt})
@@ -142,11 +144,10 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
     total_tokens = classification_tokens + response_tokens + product_tokens
     
     product_id = []
-
     for product_name in productNames:
         id_by_productName = Utility.get_product_id_by_name('english_product_responses.json', product_name)
-        product_id.append(id_by_productName)
-    print(productNames)
+        if id_by_productName is not None:  # Only append if the result is not None
+            product_id.append(id_by_productName)
     
     if 'single product' in answer.content:
         return {'WhatsApp Structure': Utility.create_json_structure(answer.content, body_text=result.get('answer'), text=None, product_ids=product_id[0]), 'tokens':total_tokens}

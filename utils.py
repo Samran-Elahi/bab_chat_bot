@@ -116,6 +116,7 @@ class Utility:
             llm=llm,
             retriever=vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 3}),
             memory=memory,
+            # condense_question_prompt: BasePromptTemplate = "",
             response_if_no_docs_found="I don't have this information rightnow. Please provide more context to answer your query.",
             rephrase_question=False,
             return_source_documents=True,
