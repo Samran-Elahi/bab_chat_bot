@@ -148,7 +148,7 @@ class Utility:
         qa_prompt = ChatPromptTemplate.from_messages( messages )
         memory = ConversationBufferMemory(memory_key="chat_history", output_key="answer", return_messages=True)
         conversation_chain = ConversationalRetrievalChain.from_llm(
-            llm=llm,
+            llm = llm,
             retriever=vectorstore.as_retriever(search_type="similarity", search_kwargs={'k': 3}),
             memory=memory,
             chain_type="stuff",
@@ -164,14 +164,14 @@ class Utility:
     def template_prompts():
         return{
             'arabic_general_system_template' : r""" 
-            Given a specific context, please give a short answer to the question, provide the names all of relevant(even if it relates a bit) products, and answer the query accordingly. 
+            Given a specific context, please give a short answer to the question, if aksed, then provide the names of relevant(even if it relates a bit) products, and answer the query accordingly. 
             Note: Answer all queries in Arabic language.
             ----
             {context}
             ----
             """, 
             'english_general_system_template' : r""" 
-            Given a specific context, please give a short answer to the question, covering the required advices in general and then provide the names all of relevant(even if it relates a bit) products. 
+            Given a specific context, please give a short answer to the question, if asked, then provide the names all of relevant(even if it relates a bit) products. 
             Note: Answer all queries in English language.
             ----
             {context}

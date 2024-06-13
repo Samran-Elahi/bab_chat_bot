@@ -16,6 +16,8 @@ class Const:
     SECURITY_CODE: str = os.getenv('SECURITY_CODE')
     CATEGORY_API: str = os.getenv('CATEGORY_API')
     PRODUCT_API: str = os.getenv('PRODUCT_API')
+    TOGETHER_API_KEY: str = os.getenv('TOGETHER_API_KEY')
+    TOGETHER_BASE_URL: str = os.getenv('TOGETHER_BASE_URL')
     ENGLISH_PRODUCTNAME_COLLECTION_NAME: str = 'english_product_names'
     ARABIC_PRODUCTNAME_COLLECTION_NAME: str = 'arabic_product_names'
 

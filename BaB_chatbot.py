@@ -91,11 +91,25 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
     Returns:
         The response from the conversation chain.
     """
+
+    llama = Together(
+        together_api_key=Const.TOGETHER_API_KEY,
+        model="meta-llama/Llama-3-70b-chat-hf",
+        temperature=0  # Make sure to include other parameters if needed
+    )
+    # llm = Together(base_url=Const.TOGETHER_BASE_URL, 
+    #                 together_api_key=Const.TOGETHER_API_KEY,
+    #                 model="meta-llama/Llama-3-70b-chat-hf"
+    #                 )
     llm = ChatOpenAI(model_name="gpt-4")
 
     combine_vectorstore = Utility.get_vectorstore(langId, new_vectorstore)[0]
-    main_conversation = Utility.get_conversation_chain(combine_vectorstore, langId, llm = ChatOpenAI(max_tokens=500))
-    
+    main_conversation = Utility.get_conversation_chain(combine_vectorstore, langId, llama)
+    print('main_conversation--- ')
+    print(main_conversation)
+    print('----------------------------------------------------------------')
+    print('----------------------------------------------------------------')
+    print('----------------------------------------------------------------')
     general_user_template = "Question:```{question}```"
     
     productName_vectorstore = Utility.get_vectorstore(langId, new_vectorstore)[1]
