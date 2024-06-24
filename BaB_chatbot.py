@@ -91,11 +91,16 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
     Returns:
         The response from the conversation chain.
     """
+
+    llama = myTogether(mybase_url=Const.TOGETHER_BASE_URL,
+        mytogether_api_key=Const.TOGETHER_API_KEY,
+        model="meta-llama/Llama-3-70b-chat-hf",
+        temperature=0  # Make sure to include other parameters if needed
+    )
     llm = ChatOpenAI(model_name="gpt-4")
 
     combine_vectorstore = Utility.get_vectorstore(langId, new_vectorstore)[0]
-    main_conversation = Utility.get_conversation_chain(combine_vectorstore, langId, llm = ChatOpenAI(max_tokens=500))
-    
+    main_conversation = Utility.get_conversation_chain(combine_vectorstore, langId, llama)
     general_user_template = "Question:```{question}```"
     
     productName_vectorstore = Utility.get_vectorstore(langId, new_vectorstore)[1]
@@ -103,18 +108,35 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
     result = main_conversation({"question": query})
     
     if langId == '2':
-        product_system_prompt = Utility.template_prompts()['product_system_message']
-        product_conversation = Utility.get_productNames_conversation_chain(productName_vectorstore, product_system_prompt, general_user_template, llm = ChatOpenAI(model_name="gpt-4" , max_tokens=100))
-        product_result = product_conversation({"question": f"""Identify and extract all the product names present in this response in arabic language which matches even slightly (semantically) from your context and database as arabic productName: {result.get('answer')}. 
+        product_system_prompt = Utility.template_prompts()['arabic_product_system_message']
+        product_conversation = Utility.get_productNames_conversation_chain(productName_vectorstore, product_system_prompt, general_user_template, llama)
+        product_result = product_conversation({"question": f"""Identify and extract all the product names present in this response in arabic language which matches even slightly (semantically) from your context and database as arabic productName:\n {result.get('answer')}. 
         Your task is to list all the identified products (productName) present in arabic language in this response from your context"""})
+        print(result.get('answer'))
+        productNames = Utility.get_product_name(product_result.get('answer'))
+        print(productNames)
+    
+        product_id = []
+        for product_name in productNames:
+            id_by_productName = Utility.get_product_id_by_name('arabic_product_responses.json', product_name)
+            if id_by_productName is not None:  # Only append if the result is not None
+                product_id.append(id_by_productName)
+
     else:
         product_system_prompt = Utility.template_prompts()['product_system_message']
-        product_conversation = Utility.get_productNames_conversation_chain(productName_vectorstore, product_system_prompt, general_user_template, llm = ChatOpenAI(model_name="gpt-4" , max_tokens=100))
-        product_result = product_conversation({"question": f"""Identify and extract all the product names present in this response which matches even slightly (semantically) from your context and database: {result.get('answer')}. 
+        product_conversation = Utility.get_productNames_conversation_chain(productName_vectorstore, product_system_prompt, general_user_template, llama)
+        product_result = product_conversation({"question": f"""Identify and extract all the product names present in this response which matches even slightly (semantically) from your context and database:\n {result.get('answer')}. 
         Your task is to list all the identified products in this response"""})
-    print(result.get('answer'))
-    productNames = Utility.get_product_name(product_result.get('answer'))
-    print(productNames)
+        print(result.get('answer'))
+        productNames = Utility.get_product_name(product_result.get('answer'))
+        print(productNames)
+    
+        product_id = []
+        for product_name in productNames:
+            id_by_productName = Utility.get_product_id_by_name('english_product_responses.json', product_name)
+            if id_by_productName is not None:  # Only append if the result is not None
+                product_id.append(id_by_productName)
+
     
     classification_prompt = f"""
         Classify the response into one of the following categories using a single designated word:
@@ -136,12 +158,6 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
     product_tokens = Utility.get_tokens(product_result.get('answer')+product_system_prompt)
     total_tokens = classification_tokens + response_tokens + product_tokens
     
-    product_id = []
-    for product_name in productNames:
-        id_by_productName = Utility.get_product_id_by_name('english_product_responses.json', product_name)
-        if id_by_productName is not None:  # Only append if the result is not None
-            product_id.append(id_by_productName)
-
     if 'single product' in answer.content:
         return {'WhatsApp Structure': Utility.create_json_structure('product', body_text=result.get('answer'), text=None, product_ids=product_id), 'tokens':total_tokens}
     
