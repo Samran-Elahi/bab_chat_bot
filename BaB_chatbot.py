@@ -92,8 +92,8 @@ async def chat_query(query: str, langId, new_vectorstore: bool=False):
         The response from the conversation chain.
     """
 
-    llama = Together(
-        together_api_key=Const.TOGETHER_API_KEY,
+    llama = myTogether(mybase_url=Const.TOGETHER_BASE_URL,
+        mytogether_api_key=Const.TOGETHER_API_KEY,
         model="meta-llama/Llama-3-70b-chat-hf",
         temperature=0  # Make sure to include other parameters if needed
     )
